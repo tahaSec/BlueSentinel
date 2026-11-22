@@ -1,0 +1,15 @@
+{
+  "events": [
+    {"event_id": 4625, "timestamp": "2025-01-10T10:00:00Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001", "source_ip": "192.0.2.10", "description": "Synthetic failed logon"},
+    {"event_id": 4625, "timestamp": "2025-01-10T10:00:10Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001", "source_ip": "192.0.2.10"},
+    {"event_id": 4625, "timestamp": "2025-01-10T10:00:20Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001", "source_ip": "192.0.2.10"},
+    {"event_id": 4625, "timestamp": "2025-01-10T10:00:30Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001", "source_ip": "192.0.2.10"},
+    {"event_id": 4625, "timestamp": "2025-01-10T10:00:40Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001", "source_ip": "192.0.2.10"},
+    {"event_id": 4624, "timestamp": "2025-01-10T10:00:45Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001", "logon_type": "3", "source_ip": "192.0.2.10"},
+    {"event_id": 4740, "timestamp": "2025-01-10T10:00:50Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001", "description": "Synthetic account lockout"},
+    {"event_id": 4672, "timestamp": "2025-01-10T10:01:00Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "account_sid": "S-1-5-21-1001"},
+    {"event_id": 4688, "timestamp": "2025-01-10T10:02:00Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-user", "domain": "LAB", "process_name": "powershell.exe", "command_line": "powershell.exe -enc c2FtcGxl", "description": "Synthetic process telemetry"},
+    {"event_id": 4720, "timestamp": "2025-01-10T10:03:00Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-created", "domain": "LAB", "account_sid": "S-1-5-21-2001", "description": "Synthetic account creation"},
+    {"event_id": 4732, "timestamp": "2025-01-10T10:04:00Z", "source": "Windows Security", "computer": "LAB-WIN", "username": "sample-created", "domain": "LAB", "account_sid": "S-1-5-21-2001", "description": "Synthetic local group change"}
+  ]
+}

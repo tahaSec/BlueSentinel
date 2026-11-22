@@ -1,0 +1,19 @@
+{
+  "id": "BS-004",
+  "name": "Suspicious Process Command",
+  "description": "Process creation contains a configured high-risk command marker.",
+  "detector": "suspicious_process",
+  "sources": ["Windows Security", "Sysmon"],
+  "conditions": {"event_ids": [1, 4688], "match": "configured indicators"},
+  "enabled": true,
+  "severity": "HIGH",
+  "mitre": ["T1059"],
+  "mitre_tactics": ["Execution"],
+  "options": {
+    "indicators": [" -enc ", " -encodedcommand ", "frombase64string", "downloadstring("]
+  },
+  "recommended_actions": [
+    "Inspect the process path, parent process, and command line in authorized telemetry.",
+    "Treat the match as a lead; encoded or scripting commands can also be legitimate."
+  ]
+}

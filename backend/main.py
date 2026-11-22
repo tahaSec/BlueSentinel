@@ -1,12 +1,12 @@
-def main():
-    print("=" * 45)
-    print("          BLUESENTINEL v0.1")
-    print("=" * 45)
-    print("Security Monitoring Platform")
-    print("Status: Starting...")
-    print("BlueSentinel is running!")
-    print("=" * 45)
+"""BlueSentinel executable entry point."""
+
+from backend.cli.commands import run
+
+
+def main(argv=None):
+    """Run the analyst CLI and return its exit code."""
+    return run(argv)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

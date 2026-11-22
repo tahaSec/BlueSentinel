@@ -1,0 +1,16 @@
+{
+  "id": "BS-003",
+  "name": "Privileged Logon",
+  "description": "Windows assigned special privileges to a new logon (event 4672).",
+  "detector": "privileged_logon",
+  "sources": ["Windows Security"],
+  "conditions": {"event_ids": [4672]},
+  "enabled": true,
+  "severity": "MEDIUM",
+  "mitre": [],
+  "mitre_tactics": [],
+  "options": {},
+  "recommended_actions": [
+    "Check whether the account and logon time are expected for privileged activity."
+  ]
+}

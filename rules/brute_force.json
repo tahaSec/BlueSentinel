@@ -1,0 +1,17 @@
+{
+  "id": "BS-001",
+  "name": "Brute Force Detection",
+  "description": "Repeated failed logons for one account in a short period.",
+  "detector": "brute_force",
+  "sources": ["Windows Security"],
+  "conditions": {"event_ids": [4625]},
+  "enabled": true,
+  "severity": "HIGH",
+  "mitre": ["T1110"],
+  "mitre_tactics": ["Credential Access"],
+  "options": {"threshold": 5, "window_seconds": 60, "group_by": ["username", "source_ip"]},
+  "recommended_actions": [
+    "Review the related authentication events and source context.",
+    "Confirm whether the activity matches expected user behavior."
+  ]
+}

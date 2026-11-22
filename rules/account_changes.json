@@ -1,0 +1,17 @@
+{
+  "id": "BS-005",
+  "name": "Account or Group Change",
+  "description": "A Windows account was created, enabled, or added to a privileged group.",
+  "detector": "account_change",
+  "sources": ["Windows Security"],
+  "conditions": {"event_ids": [4720, 4722, 4728, 4732]},
+  "enabled": true,
+  "severity": "HIGH",
+  "mitre": [],
+  "mitre_tactics": ["Persistence", "Privilege Escalation"],
+  "options": {"event_ids": [4720, 4722, 4728, 4732]},
+  "recommended_actions": [
+    "Confirm the change against an approved access request.",
+    "Review the initiating account and related group membership events."
+  ]
+}

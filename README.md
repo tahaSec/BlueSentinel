@@ -1,41 +1,186 @@
 # BlueSentinel
 
-**Windows Endpoint Threat Detection & Investigation Platform**
+BlueSentinel is a local, defensive Windows endpoint event collection and investigation tool. It normalizes Windows Security and optional Sysmon records, evaluates JSON-defined rules, stores events and findings in SQLite, groups related findings into analyst-owned incidents, and exports reports.
 
-BlueSentinel is an intermediate-level Blue Team security monitoring project built with Python. It aims to collect Windows security events, identify suspicious activity, correlate related events, and support incident investigation.
+Detections are investigation signals. They do not prove compromise, and BlueSentinel does not remediate hosts, disable accounts, terminate processes, change audit policy, or change Windows security settings.
 
-## Planned Features
+## Features
 
-- Windows Event Log collection
-- Sysmon event collection
-- Event normalization
-- Rule-based threat detection
-- Event correlation
-- Incident management
-- MITRE ATT&CK mapping
-- SQLite storage
-- JSON and CSV reporting
-- Automated testing
+- Read-only collection from the Windows Security Event Log and optional Sysmon Operational channel.
+- Bounded scans, time filters, explicit collection summaries, and safe handle cleanup.
+- UTC `SecurityEvent` model, event field mapping, preserved raw inserts, and basic secret-shaped value redaction.
+- JSON rules for brute-force activity, a successful logon after repeated failures, privileged logons, suspicious process command markers, account/group changes, and high-volume Sysmon network activity.
+- Ordered, entity-keyed event-chain correlation alongside alert grouping, plus an incident lifecycle with notes and evidence links.
+- SQLite persistence with schema initialization, legacy event-table upgrades, indexes, and duplicate suppression.
+- JSON, CSV, and Markdown investigation reports.
+- MITRE ATT&CK mappings where the observed signal supports a mapping.
+- Portable JSON sample import and mocked Windows API tests.
 
-## Technology Stack
+## Requirements and installation
 
-- Python
-- Windows Event Log
-- Sysmon
-- SQLite
-- Pytest
-- Git
+- Python 3.9 or newer (the initial compatibility target is Python 3.9).
+- Windows 10/11 for live event collection.
+- pywin32 is installed only on Windows. Sysmon is optional.
 
-## Project Status
+Create a project-local environment and install development dependencies:
 
-**Currently under development.**
+```powershell
+py -3.9 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+```
 
-BlueSentinel is being developed incrementally, starting with Windows endpoint monitoring.
+The ordinary unit and integration tests use synthetic events and API mocks. They do not require Administrator access or access to a real Security log.
 
-## Safety Notice
+## Quick start
 
-BlueSentinel is intended for defensive security monitoring and authorized testing environments. Its initial versions focus on detection and investigation, not automatic remediation.
+Run commands from the project root. The global `--db` and `--rules` options go before the subcommand.
+
+```powershell
+py -3.9 -m backend.main --help
+py -3.9 -m backend.main rules validate
+py -3.9 -m backend.main --db .\bluesentinel.db collect --source security --max-events 100 --max-records 500
+py -3.9 -m backend.main --db .\bluesentinel.db detect --output .\reports\latest.json --format json
+py -3.9 -m backend.main --db .\bluesentinel.db incidents list
+py -3.9 -m backend.main --db .\bluesentinel.db status
+```
+
+Live Security log collection attempts to enable `SeSecurityPrivilege` in the current process token. The account must already have that right. BlueSentinel does not grant rights or change policy. If the privilege or log access is missing, the command reports an error; consult an administrator and configure rights manually only if that is appropriate for your environment.
+
+Check whether a channel can be opened without reading records:
+
+```powershell
+py -3.9 -m backend.main test-connection --source security
+py -3.9 -m backend.main test-connection --source sysmon
+```
+
+The Sysmon command reports an unavailable or unreadable channel clearly. It does not install Sysmon or change its configuration.
+
+## Portable synthetic demo
+
+Sample import works without Windows APIs:
+
+```powershell
+py -3.9 -m backend.main --db .\demo.db collect --input .\sample_data\failed_logons.json
+py -3.9 -m backend.main --db .\demo.db detect --output .\reports\demo.md --format markdown
+py -3.9 -m backend.main --db .\demo.db incidents list
+```
+
+The sample contains five synthetic failed logons for one account in less than one minute. The expected result is one brute-force detection and one new incident. Re-running detection does not create duplicate detection or incident rows.
+
+More mixed Security and Sysmon examples are under `sample_data/events/`.
+
+Run both mixed synthetic fixtures together to exercise the cross-source rules:
+
+```powershell
+py -3.9 -m backend.main --db .\mixed-demo.db collect --input .\sample_data\events\mixed_windows_events.json
+py -3.9 -m backend.main --db .\mixed-demo.db collect --input .\sample_data\events\sysmon_events.json
+py -3.9 -m backend.main --db .\mixed-demo.db detect --output .\reports\mixed-demo.md --format markdown
+py -3.9 -m backend.main --db .\mixed-demo.db incidents list
+```
+
+This synthetic workflow exercises brute-force, suspicious-login, process, account-change, and ordered event-chain signals without reading the machine's real event logs.
+
+## Collection and supported events
+
+`collect --source security` supports Windows Security event IDs: 4624, 4625, 4634, 4648, 4672, 4688, 4720, 4722, 4728, 4732, and 4740. `--max-events` limits matching supported events; `--max-records` limits all scanned log records. `--since` accepts a timezone-aware ISO 8601 timestamp.
+
+`collect --source sysmon` is optional and reads IDs 1, 3, 7, 8, 10, 11, 12, 13, 14, and 22 from `Microsoft-Windows-Sysmon/Operational`. It also supports the same bounds and time filter. The collector maps known insertion-string positions; raw records are retained for follow-up analysis. Event layouts can vary by Windows/Sysmon version and should be validated in the target lab.
+
+Both collectors close handles on success and failure, skip malformed individual records with a warning, and distinguish an empty successful scan from collection failure. `test-connection` only opens and closes the channel; it does not verify that records can be read. Collection summaries are persisted without event payloads.
+
+JSON/sample events must include an integer `event_id` and an ISO 8601 `timestamp`. A timestamp without an offset is interpreted as UTC; an offset timestamp is converted to UTC. Unknown source and identity fields remain empty rather than being guessed.
+
+## Detection rules
+
+Rule definitions live in `rules/*.json`. Each rule has an ID, name, description, source scope, event IDs/conditions, detector, options, severity, enabled flag, ATT&CK tactic/technique metadata, and recommended analyst actions.
+
+```powershell
+py -3.9 -m backend.main rules list
+py -3.9 -m backend.main rules validate
+```
+
+Current rule behavior:
+
+| Rule | Signal |
+| --- | --- |
+| Brute Force Detection | Five or more Event ID 4625 records for one domain-scoped username or one source IP in 60 seconds. Identical username/IP evidence is reported once. |
+| Successful Login After Failures | A 4624 for a username after at least three 4625 records in five minutes. |
+| Privileged Logon | Event ID 4672; review whether the privileged activity is expected. |
+| Suspicious Process Command | Sysmon 1 or Security 4688 with a configured command marker such as encoded PowerShell. |
+| Account or Group Change | Events 4720, 4722, 4728, or 4732. Mapping is event-specific; account enablement alone is not forced into ATT&CK. |
+| High-Volume Network Activity Signal | At least 50 Sysmon 3 records for one username or source IP in 60 seconds. This is a low-severity volume signal, not a C2 verdict. |
+| Login then Privileged Logon | Event 4624 followed by 4672 for the same account SID within five minutes. |
+| Process then Network | Sysmon 1 or Security 4688 followed by Sysmon 3 attributed to the same process within two minutes. |
+| Account Creation then Group Addition | Event 4720 followed by 4728 or 4732 for the same target account SID within one hour. |
+| Failed Logons then Lockout | Event 4625 followed by 4740 for the same domain-qualified username, when the domain is present, within five minutes. |
+
+Thresholds, windows, sources, conditions, indicators, severity, mappings, and recommendations are stored in JSON. Unknown detector types or malformed values fail rule validation rather than being silently ignored.
+
+## Incidents and reports
+
+`detect` stores findings, identifies configured ordered event chains by explicit account SID, username, or process keys, and groups nearby alerts by their shared account, IP, host, or process keys into incidents. A chain does not match when the configured identity is missing. Incidents begin in `NEW`; an analyst can update them to `INVESTIGATING`, `RESOLVED`, or `FALSE_POSITIVE`, and append notes. BlueSentinel never closes an incident automatically.
+
+```powershell
+py -3.9 -m backend.main --db .\bluesentinel.db incidents list
+py -3.9 -m backend.main --db .\bluesentinel.db incidents show 1
+py -3.9 -m backend.main --db .\bluesentinel.db incidents update 1 --status INVESTIGATING --note "Reviewed against the lab change window."
+py -3.9 -m backend.main --db .\bluesentinel.db report --format markdown --output .\reports\investigation.md
+```
+
+Reports include collection dates, host names when available, event and detection counts, severity distribution, incident status, evidence, recommendations, and supported ATT&CK mapping. JSON includes normalized events and finding evidence; CSV includes summary, detection, and incident rows. Reports distinguish an analytical signal from confirmed compromise.
+
+## Configuration and data handling
+
+Use a JSON configuration file or environment variables. A template is available at `config.example.json`.
+
+```powershell
+$env:BLUESENTINEL_DATABASE = ".\bluesentinel.db"
+$env:BLUESENTINEL_RULES = ".\rules"
+$env:BLUESENTINEL_LOG_LEVEL = "INFO"
+py -3.9 -m backend.main status
+```
+
+The local SQLite database contains security telemetry and may include usernames, domains, account SIDs, hostnames, IP addresses, and command-line data. Keep it in an access-controlled location. BlueSentinel redacts common password/token-shaped values, but that filter is not a guarantee that every secret format will be recognized; review and protect exported files. Database and generated report files are ignored by Git by default.
+
+## Architecture
+
+- `backend/collectors/`: Windows Security, optional Sysmon, and JSON sample input.
+- `backend/normalization/`: shared model conversion and sensitive-value redaction.
+- `backend/models/`: security events, detections, correlation groups, and incidents.
+- `backend/detection/`: JSON rule validation and detector execution.
+- `backend/correlation/`: time-based alert grouping.
+- `backend/incidents/`: SQLite-backed analyst workflow.
+- `backend/storage/`: schema initialization and event/detection repositories.
+- `backend/reporting/`: JSON, CSV, and Markdown exports.
+- `backend/cli/`: analyst commands.
+- `docs/`: architecture, setup, detection, security, and roadmap.
+
+## Testing
+
+```powershell
+py -3.9 -m pytest -q
+```
+
+Windows APIs are mocked in automated tests. The suite uses synthetic fixtures, temporary SQLite files, and output files in pytest's temporary directory. The manual collector probe is `tests/manual_test_windows_collector.py`; it is not part of pytest's default `test_*.py` discovery and should only be run on an authorized Windows machine.
+
+## Limitations
+
+- Event field mapping relies on known Windows/Sysmon insertion-string order. Validate it against the event channel version in an authorized lab; unsupported layouts remain in `raw_data` but may not populate normalized fields.
+- Process and network detections are heuristic. Normal administrative activity can trigger them.
+- Network volume uses a fixed configurable threshold, not a learned host baseline.
+- ATT&CK mappings describe a detection's analytic relationship, not attribution or confirmation.
+- This is a local single-host learning and investigation tool, not a production EDR or centralized monitoring service.
+- No dashboard, REST API, scheduled collection, threat-intelligence feed, or automatic response is implemented.
+
+## Roadmap
+
+See [docs/roadmap.md](docs/roadmap.md) for planned extensions such as richer event XML parsing, Sigma-inspired rule import, baselines, multi-host ingestion, and a dashboard after the core pipeline matures.
+
+## Security and contributions
+
+See [SECURITY.md](SECURITY.md), [docs/security.md](docs/security.md), and [CONTRIBUTING.md](CONTRIBUTING.md). Use BlueSentinel only on systems and logs you are authorized to inspect.
 
 ## License
 
-License to be determined.
+MIT. See [LICENSE](LICENSE). The MIT License allows broad reuse and redistribution while requiring preservation of the copyright and license notice; it provides the software without warranty.

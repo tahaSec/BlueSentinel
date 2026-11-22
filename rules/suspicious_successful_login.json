@@ -1,0 +1,17 @@
+{
+  "id": "BS-002",
+  "name": "Successful Login After Failures",
+  "description": "A successful logon followed repeated failures for the same account.",
+  "detector": "suspicious_successful_login",
+  "sources": ["Windows Security"],
+  "conditions": {"event_ids": [4625, 4624], "group_by": "username"},
+  "enabled": true,
+  "severity": "HIGH",
+  "mitre": ["T1078"],
+  "mitre_tactics": ["Initial Access", "Persistence", "Privilege Escalation"],
+  "options": {"threshold": 3, "window_seconds": 300},
+  "recommended_actions": [
+    "Verify the successful logon with the account owner.",
+    "Review source host, logon type, and nearby events before treating this as compromise."
+  ]
+}

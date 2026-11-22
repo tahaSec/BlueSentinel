@@ -1,0 +1,8 @@
+{
+  "events": [
+    {"event_id": 1, "timestamp": "2025-01-10T10:02:00Z", "source": "Sysmon", "computer": "LAB-WIN", "username": "sample-user", "process_name": "powershell.exe", "process_path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "parent_process": "explorer.exe", "command_line": "powershell.exe -enc c2FtcGxl"},
+    {"event_id": 3, "timestamp": "2025-01-10T10:02:05Z", "source": "Sysmon", "computer": "LAB-WIN", "username": "sample-user", "process_name": "powershell.exe", "source_ip": "192.0.2.10", "destination_ip": "198.51.100.20", "description": "Synthetic network connection"},
+    {"event_id": 11, "timestamp": "2025-01-10T10:02:10Z", "source": "Sysmon", "computer": "LAB-WIN", "username": "sample-user", "description": "Synthetic file creation"},
+    {"event_id": 22, "timestamp": "2025-01-10T10:02:15Z", "source": "Sysmon", "computer": "LAB-WIN", "username": "sample-user", "description": "Synthetic DNS query"}
+  ]
+}

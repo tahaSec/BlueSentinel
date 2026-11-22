@@ -1,0 +1,17 @@
+{
+  "id": "BS-007",
+  "name": "Successful Login Followed by Privileged Logon",
+  "description": "A successful logon was followed by special privileges for the same account.",
+  "detector": "event_correlation",
+  "sources": ["Windows Security"],
+  "conditions": {"event_ids": [4624, 4672], "stages": [[4624], [4672]]},
+  "enabled": true,
+  "severity": "MEDIUM",
+  "mitre": [],
+  "mitre_tactics": ["Privilege Escalation"],
+  "options": {"window_seconds": 300, "correlation_fields": ["account_sid"]},
+  "recommended_actions": [
+    "Confirm the account and privileged logon were expected.",
+    "Review logon type, source address, and the surrounding activity."
+  ]
+}

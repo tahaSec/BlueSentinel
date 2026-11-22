@@ -1,0 +1,9 @@
+{
+  "events": [
+    {"event_id": 4625, "timestamp": "2026-11-09T09:00:00Z", "username": "alice", "computer": "LAB-PC", "source": "Windows Security", "description": "Failed logon sample"},
+    {"event_id": 4625, "timestamp": "2026-11-09T09:00:10Z", "username": "alice", "computer": "LAB-PC", "source": "Windows Security"},
+    {"event_id": 4625, "timestamp": "2026-11-09T09:00:20Z", "username": "alice", "computer": "LAB-PC", "source": "Windows Security"},
+    {"event_id": 4625, "timestamp": "2026-11-09T09:00:30Z", "username": "alice", "computer": "LAB-PC", "source": "Windows Security"},
+    {"event_id": 4625, "timestamp": "2026-11-09T09:00:40Z", "username": "alice", "computer": "LAB-PC", "source": "Windows Security"}
+  ]
+}

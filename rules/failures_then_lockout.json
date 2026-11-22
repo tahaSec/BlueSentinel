@@ -1,0 +1,17 @@
+{
+  "id": "BS-010",
+  "name": "Failed Logons Followed by Account Lockout",
+  "description": "Repeated failed logons were followed by an account lockout for the same user.",
+  "detector": "event_correlation",
+  "sources": ["Windows Security"],
+  "conditions": {"event_ids": [4625, 4740], "stages": [[4625], [4740]]},
+  "enabled": true,
+  "severity": "MEDIUM",
+  "mitre": ["T1110"],
+  "mitre_tactics": ["Credential Access"],
+  "options": {"window_seconds": 300, "correlation_fields": ["username"]},
+  "recommended_actions": [
+    "Confirm whether the lockout followed expected user activity.",
+    "Review source addresses and related authentication events before resetting the account."
+  ]
+}

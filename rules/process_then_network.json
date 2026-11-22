@@ -1,0 +1,17 @@
+{
+  "id": "BS-008",
+  "name": "Process Followed by Network Activity",
+  "description": "A process creation event was followed by a network connection attributed to the same process.",
+  "detector": "event_correlation",
+  "sources": ["Sysmon", "Windows Security"],
+  "conditions": {"event_ids": [1, 3, 4688], "stages": [[1, 4688], [3]]},
+  "enabled": true,
+  "severity": "LOW",
+  "mitre": [],
+  "mitre_tactics": ["Execution", "Command and Control"],
+  "options": {"window_seconds": 120, "correlation_fields": ["process_name"]},
+  "recommended_actions": [
+    "Review the process path, command line, and parent process.",
+    "Validate the destination and determine whether the connection was expected."
+  ]
+}

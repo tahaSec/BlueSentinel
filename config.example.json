@@ -1,0 +1,7 @@
+{
+  "database_path": "bluesentinel.db",
+  "rules_directory": "rules",
+  "log_level": "INFO",
+  "max_events": 100,
+  "max_records": 500
+}

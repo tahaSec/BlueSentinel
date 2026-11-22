@@ -1,0 +1,17 @@
+{
+  "id": "BS-009",
+  "name": "Account Created then Added to Group",
+  "description": "An account creation event was followed by a group membership change for the same account.",
+  "detector": "event_correlation",
+  "sources": ["Windows Security"],
+  "conditions": {"event_ids": [4720, 4728, 4732], "stages": [[4720], [4728, 4732]]},
+  "enabled": true,
+  "severity": "HIGH",
+  "mitre": ["T1136", "T1098.007"],
+  "mitre_tactics": ["Persistence", "Privilege Escalation"],
+  "options": {"window_seconds": 3600, "correlation_fields": ["account_sid"]},
+  "recommended_actions": [
+    "Verify the account creation and group change against an approved request.",
+    "Review the initiating account and confirm the target account identity."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "BS-006",
+  "name": "High-Volume Network Activity Signal",
+  "description": "Many Sysmon network connection records share one account in a short window.",
+  "detector": "network_burst",
+  "sources": ["Sysmon"],
+  "conditions": {"event_ids": [3], "group_by": "username_or_source_ip"},
+  "enabled": true,
+  "severity": "LOW",
+  "mitre": [],
+  "mitre_tactics": [],
+  "options": {"threshold": 50, "window_seconds": 60},
+  "recommended_actions": [
+    "Compare this activity with the host and application baseline.",
+    "A high connection rate alone does not establish malicious command-and-control."
+  ]
+}
