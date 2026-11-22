@@ -4,6 +4,33 @@ BlueSentinel is a local, defensive Windows endpoint event collection and investi
 
 Detections are investigation signals. They do not prove compromise, and BlueSentinel does not remediate hosts, disable accounts, terminate processes, change audit policy, or change Windows security settings.
 
+![BlueSentinel event investigation flow](docs/architecture.svg)
+
+### How to read the diagram
+
+BlueSentinel follows an explicit pipeline: collect a bounded set of events, normalize them to a shared UTC model and mask common secret-shaped values, store them in SQLite, then run the enabled JSON rules. Correlation connects signals only when configured time windows and identity fields match. The resulting incidents remain under analyst control and can be exported for review. Collection is read-only; alerts are leads that need human validation.
+
+## How one event becomes an investigation
+
+Think of the project as a small local security operations workflow:
+
+1. **Collect:** `collect` reads supported Windows Security or Sysmon events, or imports synthetic JSON. Limits cap the scan so a collection run stays bounded.
+2. **Normalize:** the collector maps provider-specific fields into one `SecurityEvent` shape. Timestamps become UTC; unknown fields stay in `raw_data` rather than being guessed.
+3. **Store:** SQLite keeps the normalized event and suppresses exact duplicate imports. This database is the working history for later analysis.
+4. **Detect:** `detect` loads enabled definitions from `rules/*.json`. Each rule describes its event IDs, time window, threshold, severity, ATT&CK references, and analyst guidance.
+5. **Correlate:** a single rule may detect a pattern across events; correlation rules can also require an ordered chain, such as a logon followed by a privileged logon. Related detections are grouped into an incident when they share a known entity.
+6. **Investigate and report:** analysts review evidence, add notes, and set incident status. Reports package the current events, detections, and cases in JSON, CSV, or Markdown.
+
+Try the synthetic example first. Five failed logons for the same sample account should produce one brute-force signal and one incident without accessing a real Windows event log:
+
+```powershell
+py -3.9 -m backend.main --db .\demo.db collect --input .\sample_data\failed_logons.json
+py -3.9 -m backend.main --db .\demo.db detect --output .\reports\demo.md --format markdown
+py -3.9 -m backend.main --db .\demo.db incidents list
+```
+
+The key files to explore are `backend/cli/commands.py` for the user workflow, `backend/detection/engine.py` for rule execution, `rules/` for editable detections, and `backend/storage/` for SQLite persistence. The `tests/` directory shows the expected behavior using mocked Windows APIs and synthetic events.
+
 ## Features
 
 - Read-only collection from the Windows Security Event Log and optional Sysmon Operational channel.
